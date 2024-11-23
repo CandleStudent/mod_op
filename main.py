@@ -16,7 +16,8 @@ class BasicPlanFinder:
         pass
 
 
-
+# Метод северо-западного угла. Предполагает заполнение изначального плана поставок
+# от верхней левой клетки до правой, пока не будет исчерпан план поставки или принятие товара
 class NorthWestCornerMethod(BasicPlanFinder):
     def __init__(self, supply: np.array, demand: np.array, cost: np.array):
         super().__init__(supply, demand, cost)
@@ -34,6 +35,12 @@ class NorthWestCornerMethod(BasicPlanFinder):
         return self.cost
 
 
+# план нахождения опорного плана "метод наименьшей стоимости"
+# предполагает, в отличие от метода северо-западного угла, что на каждом шаге
+# максимально возможным объемом заполняется не левая верхняя клетка, а та клетка
+# незаполненной части таблицы, в которой содержится наименьшая стоимость перевозок c[i,j]
+
+# в отличие от северо-западного угла дает более близкий к оптимальному опорный план
 class MinimalCostMethod(BasicPlanFinder):
     def __init__(self, supply: np.array, demand: np.array, cost: np.array):
         super().__init__(supply, demand, cost)
@@ -78,6 +85,7 @@ class OptimalPlanFinder:
         self.demand = np.copy(demand)
         self.cost = np.copy(cost)
         self.cost_func = 0
+        self.optimal_plan = np.zeros([len(self.supply), len(self.demand)])
 
     def find_optimal_plan(self, basic_plan:np.array):
         pass
@@ -95,8 +103,24 @@ class MethodOfPotentials(OptimalPlanFinder):
         super().__init__(supply, demand, cost)
 
     def find_optimal_plan(self, basic_plan:np.array):
-        self.basic_plan = basic_plan
+        self.optimal_plan = basic_plan
+        self.__find_potentials()
+        while not self.__is_plan_optimal():
+            self.__create_new_plan()
+            self.__find_potentials()
 
+        return self.optimal_plan
+
+    def __find_potentials(self):
+        u_i = 
+
+    def __is_plan_optimal(self):
+        for i in range(self.supply):
+            for j in range(self.demand):
+                if self.optimal_plan[i, j] == 0:
+                    delta =
+
+    def __create_new_plan(self):
         
 
 class Task:
