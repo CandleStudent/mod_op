@@ -101,6 +101,7 @@ class HungarianMethod(OptimalPlanFinder):
 class MethodOfPotentials(OptimalPlanFinder):
     def __init__(self, supply: np.array, demand: np.array, cost: np.array):
         super().__init__(supply, demand, cost)
+        self.potentials = []
 
     def find_optimal_plan(self, basic_plan:np.array):
         self.optimal_plan = basic_plan
@@ -112,7 +113,30 @@ class MethodOfPotentials(OptimalPlanFinder):
         return self.optimal_plan
 
     def __find_potentials(self):
-        u_i = 
+        non_null_cells = self.__find_non_null_cells()
+        linear_equations_system_vars = []
+        linear_equations_system_consts = []
+        for indexes in non_null_cells:
+            linear_equation = np.zeros(len(self.demand) + len(self.supply))
+            linear_equation[indexes[0]] = 1
+            linear_equation[len(self.supply) + indexes[1]] = 1
+            linear_equations_system_vars.append(linear_equation)
+            linear_equations_system_consts.append(self.cost[indexes[0], indexes[1]])
+        # устанавливаем значение одной из переменных как нуль (убираем один столбец по сути, считая его известным)
+        linear_equations_system_vars = linear_equations_system_vars[:-1]
+        self.potentials = np.linalg.solve(linear_equations_system_vars, linear_equations_system_consts)
+        self.potentials = np.append(self.potentials, 0) # добавляем зануленный потенциал
+
+
+    def __find_non_null_cells(self):
+        non_null_cells = []
+        for i in range(self.supply):
+            for j in range(self.demand):
+                if self.optimal_plan[i, j] != 0:
+                    non_null_cells.append((i, j))
+        return non_null_cells
+
+
 
     def __is_plan_optimal(self):
         for i in range(self.supply):
@@ -121,7 +145,7 @@ class MethodOfPotentials(OptimalPlanFinder):
                     delta =
 
     def __create_new_plan(self):
-        
+        pass
 
 class Task:
     def __init__(self,
