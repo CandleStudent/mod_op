@@ -127,7 +127,6 @@ class MethodOfPotentials(OptimalPlanFinder):
         self.potentials = np.linalg.solve(linear_equations_system_vars, linear_equations_system_consts)
         self.potentials = np.append(self.potentials, 0) # добавляем зануленный потенциал
 
-
     def __find_non_null_cells(self):
         non_null_cells = []
         for i in range(self.supply):
@@ -136,13 +135,20 @@ class MethodOfPotentials(OptimalPlanFinder):
                     non_null_cells.append((i, j))
         return non_null_cells
 
-
-
     def __is_plan_optimal(self):
         for i in range(self.supply):
             for j in range(self.demand):
                 if self.optimal_plan[i, j] == 0:
-                    delta =
+                    delta = self.__get_supply_potential(i) - self.__get_demand_potential(j) - self.cost[i, j]
+                    if delta > 0:
+                        return False
+        return True
+
+    def __get_demand_potential(self, index:int):
+        return self.potentials[len(self.supply) + index]
+
+    def __get_supply_potential(self, index:int):
+        return self.potentials[index]
 
     def __create_new_plan(self):
         pass
