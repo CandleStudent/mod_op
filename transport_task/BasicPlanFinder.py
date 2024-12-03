@@ -14,6 +14,10 @@ class BasicPlanFinder:
     def find_path(self):
         pass
 
+    def print_matr(self):
+        for i in range(len(self.supply)):
+            print(self.basic_plan[i])
+
 
 # Метод северо-западного угла. Предполагает заполнение изначального плана поставок
 # от верхней левой клетки до правой, пока не будет исчерпан план поставки или принятие товара
@@ -22,6 +26,7 @@ class NorthWestCornerMethod(BasicPlanFinder):
         super().__init__(supply, demand, cost)
 
     def find_path(self):
+        print("Поиск опорного плана северо-западным методом")
         m = len(self.supply)
         n = len(self.demand)
         for i in range(m):
@@ -30,6 +35,10 @@ class NorthWestCornerMethod(BasicPlanFinder):
                 self.basic_plan[i, j] = minimal_num
                 self.supply[i] -= minimal_num
                 self.demand[j] -= minimal_num
+            print("Новая строка в опорном плане")
+            self.print_matr()
+            print("Из", self.supply)
+            print("В", self.demand)
 
         return self.basic_plan
 
@@ -66,6 +75,7 @@ class MinimalCostMethod(BasicPlanFinder):
         return True
 
     def find_path(self):
+        print("Поиск опорного плана методом наименьшей стоимости")
         while ( (not self.__is_contains_only_zeros(self.supply))
                 and (not self.__is_contains_only_zeros(self.demand)) ):
 
@@ -74,5 +84,10 @@ class MinimalCostMethod(BasicPlanFinder):
             self.basic_plan[min_i, min_j] = minimal_num
             self.supply[min_i] -= minimal_num
             self.demand[min_j] -= minimal_num
+
+            print("Обновление опорного плана")
+            self.print_matr()
+            print("Из", self.supply)
+            print("В", self.demand)
 
         return self.basic_plan
