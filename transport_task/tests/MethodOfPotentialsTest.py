@@ -100,6 +100,27 @@ class MethodOfPotentialsTest(unittest.TestCase):
         ])
         np.testing.assert_allclose(methodOfPotentials.optimal_plan, expected_optimal_plan, atol=1e-5)
 
+    def test_find_optimal_plan(self):
+        supply = np.array([1000, 1700, 1600])
+        demand = np.array([1600,1000,	1700])
+        cost = np.array([[4893, 4280, 6213], [5327, 4296, 6188], [6006, 5030, 7224]])
+        methodOfPotentials = MethodOfPotentials(supply, demand, cost)
+        basic_plan = np.array([
+            [1000, 0, 0],
+            [600, 1000, 100],
+            [0, 0, 1600]
+        ])
+
+        optimal_plan = methodOfPotentials.find_optimal_plan(basic_plan)
+
+        expected_optimal_plan = np.array([
+            [1000, 0, 0],
+            [0, 0, 1700],
+            [600, 1000, 0]
+        ])
+        np.testing.assert_allclose(optimal_plan, expected_optimal_plan, atol=1e-5)
+
+
 
 if __name__ == "__main__":
     unittest.main()
