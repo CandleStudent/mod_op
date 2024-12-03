@@ -41,8 +41,10 @@ class MethodOfPotentials(OptimalPlanFinder):
             print("Вводим фиктивную клетку")
             for i in range(len(self.supply) - 1):
                 for j in range(len(self.demand)):
-                    if (self.occupied_cells[i, j] == 0) and self.occupied_cells[i + 1, j] != 0:
+                    if (self.occupied_cells[i, j] == 0): #and self.occupied_cells[i + 1, j] != 0:
                         self.occupied_cells[i, j] = 1
+                        if (self.find_loop((i, j))): # создает цикл, сл-но не подходит
+                            self.occupied_cells[i, j] = 1
                         if not (len(self.__get_occupied_cells()) < len(self.supply) + len(self.demand) - 1):
                             print('Клетка: (', i, ',', j, ') = 0')
                             print('\n* * * * * * * * * * * * * * * * *\n')
@@ -116,7 +118,7 @@ class MethodOfPotentials(OptimalPlanFinder):
         print("Создаем новый план")
         print("Цикл начинается в клетке ", self.max_delta_i_j)
         # find cycle and put + and - in cycle_matrix
-        loop = self.find_loop()
+        loop = self.find_loop(self.max_delta_i_j)
         print("Найденный цикл: ", loop)
         even_cells = loop[0::2]  # четные позиции в цикле <==> +
         odd_cells = loop[1::2]  # нечетные позиции в цикле <==> -
@@ -160,10 +162,10 @@ class MethodOfPotentials(OptimalPlanFinder):
                     occupied_cells_list.append((i, j))
         return occupied_cells_list
 
-    def find_loop(self):
+    def find_loop(self, loop_start):
         def recursion(loop):
             if len(loop) > 3:
-                can_be_closed = len(self.get_possible_next_nodes(loop, [self.max_delta_i_j])) == 1
+                can_be_closed = len(self.get_possible_next_nodes(loop, [loop_start])) == 1
                 if can_be_closed: return loop
             not_visited = list(set(self.__get_occupied_cells()) - set(loop))
             possible_next_nodes = self.get_possible_next_nodes(loop, not_visited)
@@ -171,7 +173,7 @@ class MethodOfPotentials(OptimalPlanFinder):
                 new_loop = recursion(loop + [next_node])
                 if new_loop: return new_loop # если не пустой
 
-        return recursion([self.max_delta_i_j])
+        return recursion([loop_start])
 
 
     def get_possible_next_nodes(self, loop, not_visited):
