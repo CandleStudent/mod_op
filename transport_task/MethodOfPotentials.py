@@ -78,7 +78,68 @@ class MethodOfPotentials(OptimalPlanFinder):
         return self.potentials[index]
 
     def create_new_plan(self):
-        cycle_matrix = [['' for _ in range(len(self.demand))] for _ in range(len(self.supply))]
-        i_start, j_start = self.max_delta_i_j
-        cycle_matrix[i_start, j_start] = '+'
         # find cycle and put + and - in cycle_matrix
+        loop = self.find_loop()
+        even_cells = loop[0::2]  # четные позиции в цикле <==> +
+        odd_cells = loop[1::2]  # нечетные позиции в цикле <==> -
+        lower_transfer_i, lower_transfer_j = self.__get_lower_transfer_index(odd_cells) # из всех объемов перевозок с - -- наименьший
+        lower_tranfer = self.optimal_plan[lower_transfer_i, lower_transfer_j]
+        # меняем матрицу занятости
+        self.occupied_cells[lower_transfer_i, lower_transfer_j] = 0
+        self.occupied_cells[self.max_delta_i_j[0], self.max_delta_i_j[1]] = 1
+        # вычитаем и прибавляем lower_tranfer из - и + соотв
+        self.__update_optimal_plan_after_find_lower_tranfer(even_cells, odd_cells, lower_tranfer)
+
+    def __update_optimal_plan_after_find_lower_tranfer(self, even_cells, odd_cells, lower_transfer):
+        for even_cell in even_cells:
+            self.optimal_plan[even_cell[0], even_cell[1]] += lower_transfer
+        for odd_cell in odd_cells:
+            self.optimal_plan[odd_cell[0], odd_cell[1]] -= lower_transfer
+
+    def __get_lower_transfer_index(self, odd_cells: list[tuple[int, int]]):
+        lower_transfer = self.optimal_plan[odd_cells[0]]
+        min_i = 0
+        min_j = 0
+        for i, j in odd_cells:
+            if self.optimal_plan[i, j] <= lower_transfer:
+                lower_transfer = self.optimal_plan[i, j]
+                min_i = i
+                min_j = j
+        return (min_i, min_j)
+
+
+    def __get_occupied_cells(self):
+        occupied_cells_list = []
+        for i in range(len(self.supply)):
+            for j in range(len(self.demand)):
+                if self.occupied_cells[i, j] == 1:
+                    occupied_cells_list.append((i, j))
+        return occupied_cells_list
+
+    def find_loop(self):
+        def recursion(loop):
+            if len(loop) > 3:
+                can_be_closed = len(self.get_possible_next_nodes(loop, [self.max_delta_i_j])) == 1
+                if can_be_closed: return loop
+            not_visited = list(set(self.__get_occupied_cells()) - set(loop))
+            possible_next_nodes = self.get_possible_next_nodes(loop, not_visited)
+            for next_node in possible_next_nodes:
+                new_loop = recursion(loop + [next_node])
+                if new_loop: return new_loop # если не пустой
+
+        return recursion([self.max_delta_i_j])
+
+
+    def get_possible_next_nodes(self, loop, not_visited):
+        last_node = loop[-1]
+        nodes_in_row = [n for n in not_visited if n[0] == last_node[0]]
+        nodes_in_column = [n for n in not_visited if n[1] == last_node[1]]
+        # Если цикл < 2 узлов, остаемся том же ряду и столбце.
+        if len(loop) < 2:
+            return nodes_in_row + nodes_in_column
+        # Иначе чередуем строка-столбец
+        else:
+            prev_node = loop[-2]
+            row_move = prev_node[0] == last_node[0]
+            if row_move: return nodes_in_column
+            return nodes_in_row

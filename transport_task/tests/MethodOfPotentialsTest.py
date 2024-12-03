@@ -7,17 +7,17 @@ from transport_task.MethodOfPotentials import MethodOfPotentials
 
 
 class MethodOfPotentialsTest(unittest.TestCase):
-    def setUp(self):
-        # тестовые данные со страниц 38-39 методички (примеры использования методов)
-        self.supply = np.array([100, 300, 180, 320])
-        self.demand = np.array([200, 250, 120, 130, 200])
-        self.cost = np.array([
-            [10, 7, 2, 5, 5],
-            [4, 9, 8, 1, 3],
-            [5, 12, 16, 8, 7],
-            [7, 4, 6, 3, 11]
-        ])
-        self.methodOfPotentials = MethodOfPotentials(self.supply, self.demand, self.cost)
+    # def setUp(self):
+    #     # тестовые данные со страниц 38-39 методички (примеры использования методов)
+    #     self.supply = np.array([100, 300, 180, 320])
+    #     self.demand = np.array([200, 250, 120, 130, 200])
+    #     self.cost = np.array([
+    #         [10, 7, 2, 5, 5],
+    #         [4, 9, 8, 1, 3],
+    #         [5, 12, 16, 8, 7],
+    #         [7, 4, 6, 3, 11]
+    #     ])
+    #     self.methodOfPotentials = MethodOfPotentials(self.supply, self.demand, self.cost)
 
     def test_find_potentials(self):
         supply = np.array([100, 300, 180, 320])
@@ -87,6 +87,7 @@ class MethodOfPotentialsTest(unittest.TestCase):
         methodOfPotentials.potentials = np.array([0, -4, 2, 4, 3, 0, 2, 5, 7])
         methodOfPotentials.max_delta = 6
         methodOfPotentials.max_delta_i_j = (3, 3)
+        methodOfPotentials.initial_find_occupied_cells()
 
         methodOfPotentials.create_new_plan()
 
