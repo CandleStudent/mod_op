@@ -16,7 +16,7 @@ class MethodOfPotentials(OptimalPlanFinder):
         for i in range(len(self.supply)):
             print(self.optimal_plan[i])
 
-    def find_optimal_plan(self, basic_plan:np.array):
+    def find_internal(self, basic_plan:np.array):
         print("Начало поиска оптимального плана")
         self.optimal_plan = basic_plan
         print("Исходный план")

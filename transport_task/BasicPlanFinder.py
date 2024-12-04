@@ -12,7 +12,30 @@ class BasicPlanFinder:
         self.cost_func = 0
 
     def find_path(self):
+        self.balance()
+        return self.find_path_internal()
+
+    def find_path_internal(self):
         pass
+
+    def balance(self):
+        sum_supply = sum(self.supply)
+        sum_demand = sum(self.demand)
+        is_task_balanced = sum_demand == sum_supply
+        self.is_balanced = is_task_balanced
+        if is_task_balanced:
+            print("Задача сбалансирована")
+        else:
+            print("Задача несбалансирована. Сбалансируем ее")
+            if sum_supply > sum_demand:
+                # Вводим фиктивного n+1 потребителя
+                self.demand = np.append(self.demand, sum_supply - sum_demand)
+                for row_i in range(len(self.cost)):
+                    self.cost[row_i] = np.append(self.cost[row_i], 0)
+            else:
+                # Вводим фиктивного m+1 поставщика
+                self.supply = np.append(self.supply, sum_demand - sum_supply)
+                self.cost = np.append(self.cost, np.zeros(len(self.demand)))
 
     def print_matr(self):
         for i in range(len(self.supply)):
@@ -25,7 +48,7 @@ class NorthWestCornerMethod(BasicPlanFinder):
     def __init__(self, supply: np.array, demand: np.array, cost: np.array):
         super().__init__(supply, demand, cost)
 
-    def find_path(self):
+    def find_path_internal(self):
         print("Поиск опорного плана северо-западным методом")
         m = len(self.supply)
         n = len(self.demand)
@@ -74,7 +97,7 @@ class MinimalCostMethod(BasicPlanFinder):
                 return False
         return True
 
-    def find_path(self):
+    def find_path_internal(self):
         print("Поиск опорного плана методом наименьшей стоимости")
         while ( (not self.__is_contains_only_zeros(self.supply))
                 and (not self.__is_contains_only_zeros(self.demand)) ):

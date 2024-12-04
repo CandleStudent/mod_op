@@ -62,13 +62,16 @@ cost = np.array([
     [4893, 4280, 6213],
     [5327, 4296, 6188],
     [6006, 5030, 7224]])
-print(MinimalCostMethod(supply, demand, cost).find_path())
-
-task = Task(supply,
-            demand,
-            cost,
-            NorthWestCornerMethod(supply, demand, cost),
-            MethodOfPotentials(supply, demand, cost))
-
-task.solve()
-print(task.plan)
+# print(MinimalCostMethod(supply, demand, cost).find_path())
+north_west_corner_method = NorthWestCornerMethod(supply, demand, cost)
+basic_plan = north_west_corner_method.find_path()
+potentials_method = MethodOfPotentials(north_west_corner_method.supply, north_west_corner_method.demand, north_west_corner_method.cost)
+optimal_plan = potentials_method.find_optimal_plan(basic_plan)
+# task = Task(supply,
+#             demand,
+#             cost,
+#             NorthWestCornerMethod(supply, demand, cost),
+#             MethodOfPotentials(supply, demand, cost))
+#
+# task.solve()
+# print(task.plan)
