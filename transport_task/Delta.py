@@ -1,5 +1,54 @@
 import numpy as np
 
+from transport_task.OptimalPlanFinder import OptimalPlanFinder
+from transport_task.Utility import print_matrix
+
+class DeltaMethod(OptimalPlanFinder):
+
+    def __init__(self, supply: np.array, demand: np.array, cost: np.array):
+        super().__init__(supply, demand, cost)
+
+    def find_optimal_plan(self, basic_plan:np.array):
+        print("Начало работы дельта-метода")
+        print("Исходная таблица стоимости")
+        print_matrix(self.cost)
+        column_increment_table = self.build_column_increment_table() # постр. таблицу приращений
+        print("Таблица приращений по столбцам")
+        print_matrix(column_increment_table)
+        row_increment_table = self.build_row_increment_table(column_increment_table)
+        print("Таблица приращений по строкам")
+        print_matrix(row_increment_table)
+
+
+
+    def build_column_increment_table(self):
+        print("1. Создание таблицы приращений по столбцам")
+        column_increment_table = self.cost.copy()
+        # проходим по столбцам, выбираем наим. стоимость и вычитываем ее из всех стоимостей столбца
+        for col_index in range(len(column_increment_table[0])):
+            # поиск наименьшего значения в столбце
+            min_column_cost = min([row[col_index] for row in column_increment_table])
+            # вычитаем ее
+            for row_index in range(len(column_increment_table)):
+                column_increment_table[row_index, col_index] -= min_column_cost
+
+        return column_increment_table
+
+    def build_row_increment_table(self, column_increment_table:np.array):
+        print("2. Создание таблицы приращений по строкам")
+        row_increment_table = column_increment_table.copy()
+        for row_index in range(len(row_increment_table)):
+            curr_row = row_increment_table[row_index]
+            min_row_cost = min(curr_row)
+            if min_row_cost > 0:
+                # вычитаем из ненулевых значений
+                for col_index in range(len(row_increment_table[row_index])):
+                    row_increment_table[row_index, col_index] -= 0 if row_increment_table[row_index, col_index] <= 0 else min_row_cost
+
+        return row_increment_table
+
+
+
 def delta_method(costs, supply, demand):
     print("\n----------- Дельта мтеод -----------")
 
