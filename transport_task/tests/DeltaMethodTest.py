@@ -42,6 +42,9 @@ class DeltaMethodTest(unittest.TestCase):
 
         np.testing.assert_allclose(result, expected_matrix, atol=1e-5)
 
+    def test_assign_customer_to_supplier(self):
+        pass
+
     def test_find_optimal_plan(self):
         supply = np.array([1000, 1700, 1600])
         demand = np.array([1600,1000,	1700])

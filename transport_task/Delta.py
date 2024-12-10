@@ -7,6 +7,7 @@ class DeltaMethod(OptimalPlanFinder):
 
     def __init__(self, supply: np.array, demand: np.array, cost: np.array):
         super().__init__(supply, demand, cost)
+        self.supply_diff = None
 
     def find_optimal_plan(self, basic_plan:np.array):
         print("Начало работы дельта-метода")
@@ -18,13 +19,22 @@ class DeltaMethod(OptimalPlanFinder):
         row_increment_table = self.build_row_increment_table(column_increment_table)
         print("Таблица приращений по строкам")
         print_matrix(row_increment_table)
+        assignment_matrix = self.assign_customer_to_supplier(row_increment_table)
+        print("матрица прикреплений поставщиков и потребителей")
+        print_matrix(assignment_matrix)
+        supply_diff = self.get_virtual_and_real_supply_diff(assignment_matrix)
+        if self.is_plan_after_diff_optimal():
+            print("Найден оптимальный план")
+            print_matrix(assignment_matrix)
+        else:
+            print("Найден неоптимальный план. Продолжаем алгоритм")
 
 
 
     def build_column_increment_table(self):
         print("1. Создание таблицы приращений по столбцам")
         column_increment_table = self.cost.copy()
-        # проходим по столбцам, выбираем наим. стоимость и вычитываем ее из всех стоимостей столбца
+        # проходим по столбцам, выбираем наим. стоимость и вычитаем ее из всех стоимостей столбца
         for col_index in range(len(column_increment_table[0])):
             # поиск наименьшего значения в столбце
             min_column_cost = min([row[col_index] for row in column_increment_table])
@@ -33,6 +43,7 @@ class DeltaMethod(OptimalPlanFinder):
                 column_increment_table[row_index, col_index] -= min_column_cost
 
         return column_increment_table
+
 
     def build_row_increment_table(self, column_increment_table:np.array):
         print("2. Создание таблицы приращений по строкам")
@@ -47,6 +58,48 @@ class DeltaMethod(OptimalPlanFinder):
 
         return row_increment_table
 
+
+    def assign_customer_to_supplier(self, row_increment_table:np.array):
+        print("3. Назначение потребителей поставщикам")
+        supply = self.supply.copy()
+        demand = self.demand.copy()
+        x = np.zeros_like(row_increment_table)
+        for num_zeros in range(1, row_increment_table.shape[0] + row_increment_table.shape[1]):
+            for j in range(row_increment_table.shape[1]):
+                zero_indices = np.where(row_increment_table[:, j] == 0)[0]
+                if len(zero_indices) == num_zeros:
+                    if num_zeros == 1:
+                        for i in zero_indices:
+                            # print(supply[i], demand[j])
+                            x[i, j] = demand[j]
+                            # bfs.append(((i, j), demand[j]))
+                            supply[i] -= demand[j]
+                            demand[j] -= demand[j]
+                    else:
+                        for i in zero_indices:
+                            min_sup_demand = min(0, supply[i], demand[j])
+                            x[i, j] = min_sup_demand
+                            supply[i] -= min_sup_demand
+                            demand[j] -= min_sup_demand
+        return x
+
+    def get_virtual_and_real_supply_diff(self, assignment_matrix):
+        print("4. Подсчитываем для строк разницы между фактическими запасами и полученными для опорного фиктивного плана")
+        self.supply_diff = np.zeros_like(self.supply)
+        for i in range(len(self.supply)):
+            self.supply_diff[i] = self.supply[i] - sum(assignment_matrix[i])
+
+    def get_columns_indexes_with_cells_in_redundant_rows(self):
+        # print("Получение столбцов, у которых есть занятые клетки в избыточных строках")
+        columns_indexes = []
+        for col_index in range(len(self.cost[0])):
+            for row_index in range(len(self.cost)):
+                if self.supply_diff[col_index] < 0:
+                    columns_indexes.append(col_index)
+        return np.array(columns_indexes)
+
+    def is_plan_after_diff_optimal(self):
+        return len(self.supply_diff) == np.where(self.supply_diff[:] == 0)[0]  # см. п. 4 все дельты = 0. Все грузы перевозятся с наименьшими приращениями стоимости
 
 
 def delta_method(costs, supply, demand):
