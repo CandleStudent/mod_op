@@ -4,7 +4,7 @@ from transport_task import BasicPlanFinder, OptimalPlanFinder
 from transport_task.BasicPlanFinder import MinimalCostMethod, NorthWestCornerMethod
 from transport_task.MethodOfPotentials import MethodOfPotentials
 
-
+#TODO выделить в отдельный класс балансировку задачи
 class Task:
     def __init__(self,
                  supply: np.array,

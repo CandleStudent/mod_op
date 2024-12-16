@@ -29,8 +29,9 @@ class DeltaMethod(OptimalPlanFinder):
             print_matrix(assignment_matrix)
         else:
             print("Найден неоптимальный план. Продолжаем алгоритм")
-            columns_with_cells_in_zero_or_excessive_rows = self.get_columns_with_cells_in_zero_or_excessive_rows(assignment_matrix) # п. 5 столбцы, имеющие занятые клетки в избыточных строках
-            lowest_diffs_in_marked_row_column_pairs = self.get_lowest_diffs_in_marked_row_column_pairs(columns_with_cells_in_zero_or_excessive_rows, assignment_matrix) #п. 6
+            columns_with_cells_in_zero_or_excessive_rows = self.get_columns_indexes_with_cells_in_excessive_rows(assignment_matrix) # п. 5 столбцы, имеющие занятые клетки в избыточных строках
+            lowest_diffs_in_marked_row_column_pairs = self.get_lowest_diffs_in_marked_row_column_pairs(columns_with_cells_in_zero_or_excessive_rows, row_increment_table) #п. 6
+
             
 
 
@@ -81,7 +82,7 @@ class DeltaMethod(OptimalPlanFinder):
                             demand[j] -= demand[j]
                     else:
                         for i in zero_indices:
-                            min_sup_demand = min(0, supply[i], demand[j])
+                            min_sup_demand = min(supply[i], demand[j])
                             x[i, j] = min_sup_demand
                             supply[i] -= min_sup_demand
                             demand[j] -= min_sup_demand
@@ -93,39 +94,31 @@ class DeltaMethod(OptimalPlanFinder):
         for i in range(len(self.supply)):
             self.supply_diff[i] = self.supply[i] - sum(assignment_matrix[i])
 
-    def get_columns_indexes_with_cells_in_redundant_rows(self):
+    def get_columns_indexes_with_cells_in_excessive_rows(self, assignment_matrix):
         # print("Получение столбцов, у которых есть занятые клетки в избыточных строках")
-        columns_indexes = []
+        columns_indexes = set()
         for col_index in range(len(self.cost[0])):
             for row_index in range(len(self.cost)):
-                if self.supply_diff[col_index] < 0:
-                    columns_indexes.append(col_index)
-        return np.array(columns_indexes)
+                if self.supply_diff[row_index] < 0 and assignment_matrix[row_index, col_index] > 0:
+                    columns_indexes.add(col_index)
+        return np.array(list(columns_indexes))
 
     def is_plan_after_diff_optimal(self):
         return len(self.supply_diff) == np.where(self.supply_diff[:] == 0)[0]  # см. п. 4 все дельты = 0. Все грузы перевозятся с наименьшими приращениями стоимости
 
-    def get_columns_with_cells_in_zero_or_excessive_rows(self, matrix):
-        columns = []
-        for i in range(len(self.supply)):
-            if self.supply_diff[i] <= 0:
-                for col_index in range(len(self.cost[0])):
-                    if matrix[i, col_index] > 0:
-                        columns.append(col_index)
-        return columns
 
+    # п. 6 Возвращает key-value -- row_index : min_diff
     def get_lowest_diffs_in_marked_row_column_pairs(self, columns_with_cells_in_zero_or_excessive_rows,
-                                                    assignment_matrix):
-        lowest_diffs = [] # float(inf, если нет подходящих элементов. В остальном повторяет длину массива супплая
+                                                    row_increment_table):
+        lowest_diffs = {} # float(inf, если нет подходящих элементов. В остальном повторяет длину массива супплая
         for row_index in range(len(self.cost)):
             if self.supply_diff[row_index] >= 0:
                 lowest_diff = float("inf")
                 for col_index in columns_with_cells_in_zero_or_excessive_rows:
-                    if assignment_matrix[row_index, col_index] < lowest_diff:
-                        lowest_diff = assignment_matrix[row_index, col_index]
-                lowest_diffs.append(lowest_diff)
+                    if row_increment_table[row_index, col_index] < lowest_diff:
+                        lowest_diff = row_increment_table[row_index, col_index]
+                lowest_diffs[row_index] = lowest_diff
         return lowest_diffs
-
 
 def delta_method(costs, supply, demand):
     print("\n----------- Дельта мтеод -----------")
