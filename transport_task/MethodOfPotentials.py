@@ -2,7 +2,7 @@ import numpy as np
 
 from transport_task.OptimalPlanFinder import OptimalPlanFinder
 
-
+#TODO добавить вычисление целевой функции и проверку того, что она действительно уменьшается с каждой итерацией
 class MethodOfPotentials(OptimalPlanFinder):
     def __init__(self, supply: np.array, demand: np.array, cost: np.array):
         super().__init__(supply, demand, cost)

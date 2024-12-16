@@ -8,6 +8,7 @@ class DeltaMethod(OptimalPlanFinder):
     def __init__(self, supply: np.array, demand: np.array, cost: np.array):
         super().__init__(supply, demand, cost)
         self.supply_diff = None
+        self.occupied_cells = np.array([np.zeros(len(self.demand)) for _ in range(len(self.supply))])
 
     def find_optimal_plan(self, basic_plan:np.array):
         print("Начало работы дельта-метода")
@@ -22,12 +23,15 @@ class DeltaMethod(OptimalPlanFinder):
         assignment_matrix = self.assign_customer_to_supplier(row_increment_table)
         print("матрица прикреплений поставщиков и потребителей")
         print_matrix(assignment_matrix)
-        supply_diff = self.get_virtual_and_real_supply_diff(assignment_matrix)
+        self.get_virtual_and_real_supply_diff(assignment_matrix) # self.supply_diff
         if self.is_plan_after_diff_optimal():
             print("Найден оптимальный план")
             print_matrix(assignment_matrix)
         else:
             print("Найден неоптимальный план. Продолжаем алгоритм")
+            columns_with_cells_in_zero_or_excessive_rows = self.get_columns_with_cells_in_zero_or_excessive_rows(assignment_matrix) # п. 5 столбцы, имеющие занятые клетки в избыточных строках
+            lowest_diffs_in_marked_row_column_pairs = self.get_lowest_diffs_in_marked_row_column_pairs(columns_with_cells_in_zero_or_excessive_rows, assignment_matrix) #п. 6
+            
 
 
 
@@ -101,6 +105,27 @@ class DeltaMethod(OptimalPlanFinder):
     def is_plan_after_diff_optimal(self):
         return len(self.supply_diff) == np.where(self.supply_diff[:] == 0)[0]  # см. п. 4 все дельты = 0. Все грузы перевозятся с наименьшими приращениями стоимости
 
+    def get_columns_with_cells_in_zero_or_excessive_rows(self, matrix):
+        columns = []
+        for i in range(len(self.supply)):
+            if self.supply_diff[i] <= 0:
+                for col_index in range(len(self.cost[0])):
+                    if matrix[i, col_index] > 0:
+                        columns.append(col_index)
+        return columns
+
+    def get_lowest_diffs_in_marked_row_column_pairs(self, columns_with_cells_in_zero_or_excessive_rows,
+                                                    assignment_matrix):
+        lowest_diffs = [] # float(inf, если нет подходящих элементов. В остальном повторяет длину массива супплая
+        for row_index in range(len(self.cost)):
+            if self.supply_diff[row_index] >= 0:
+                lowest_diff = float("inf")
+                for col_index in columns_with_cells_in_zero_or_excessive_rows:
+                    if assignment_matrix[row_index, col_index] < lowest_diff:
+                        lowest_diff = assignment_matrix[row_index, col_index]
+                lowest_diffs.append(lowest_diff)
+        return lowest_diffs
+
 
 def delta_method(costs, supply, demand):
     print("\n----------- Дельта мтеод -----------")
@@ -122,7 +147,7 @@ def delta_method(costs, supply, demand):
         min_cost = np.min(delta_costs[:, j])
         delta_costs[:, j] -= min_cost
     print("\nТаблица приращений по столбцам:\n")
-    printMatrix(delta_costs)
+    print_matrix(delta_costs)
     # Шаг 2: Создаем таблицу приращений по строкам
     for i in range(delta_costs.shape[0]):
         if np.min(delta_costs[i, :]) > 0:
@@ -131,7 +156,7 @@ def delta_method(costs, supply, demand):
 
 
     print("\nТаблица приращений по строкам:\n")
-    printMatrix(delta_costs)
+    print_matrix(delta_costs)
     # Шаг 3: Закрепляем потребности bj, начиная с столбцов с минимальным числом нулевых приращений
     x = np.zeros_like(delta_costs)
 
@@ -153,7 +178,7 @@ def delta_method(costs, supply, demand):
                         if supply[i] == 0 or demand[j] == 0:
                             break
     print("\nТаблица после закрепления потребностей:\n")
-    printMatrix(x)
+    print_matrix(x)
 
     # Шаг 4: Подсчитываем ∆a_i для строк и определяем их статус
 
@@ -214,12 +239,12 @@ def delta_method(costs, supply, demand):
 
 
     print("\nПолученный план: ")
-    printMatrix(x)
+    print_matrix(x)
 
 
     x, bfs = handle_degeneracy(x.copy(), bfs.copy())
     print("\nОптимальный план:")
-    printMatrix(x)
+    print_matrix(x)
 
     print("\nМинимальная сумма: ", get_total_cost(costs, x), "\n")
 
