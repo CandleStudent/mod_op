@@ -10,6 +10,7 @@ class DeltaMethod(OptimalPlanFinder):
         self.supply_diff = None
         self.occupied_cells = np.array([np.zeros(len(self.demand)) for _ in range(len(self.supply))])
 
+    # here assignment_matrix equals to optimal_plan
     def find_optimal_plan(self, basic_plan:np.array):
         print("Начало работы дельта-метода")
         print("Исходная таблица стоимости")
@@ -23,17 +24,48 @@ class DeltaMethod(OptimalPlanFinder):
         assignment_matrix = self.assign_customer_to_supplier(row_increment_table)
         print("матрица прикреплений поставщиков и потребителей")
         print_matrix(assignment_matrix)
+
         self.get_virtual_and_real_supply_diff(assignment_matrix) # self.supply_diff
-        if self.is_plan_after_diff_optimal():
-            print("Найден оптимальный план")
-            print_matrix(assignment_matrix)
-        else:
+
+        while not self.is_plan_after_diff_optimal():
             print("Найден неоптимальный план. Продолжаем алгоритм")
             columns_with_cells_in_zero_or_excessive_rows = self.get_columns_indexes_with_cells_in_excessive_rows(assignment_matrix) # п. 5 столбцы, имеющие занятые клетки в избыточных строках
             lowest_diffs_in_marked_row_column_pairs = self.get_lowest_diffs_in_marked_row_column_pairs(columns_with_cells_in_zero_or_excessive_rows, row_increment_table) #п. 6
+            # п. 7
+            deficient_rows_indexes = [i for i in range(len(self.supply)) if self.supply_diff[i] > 0]
+            minimal_lowest_diff_for_deficient_rows = min([lowest_diffs_in_marked_row_column_pairs[i] for i in deficient_rows_indexes])
+            # два случая: минимум меньше всех минимумов для нулевых строк и минимум некоторых нулевых строк меньше найденного минимума
+            zero_rows_indexes = [i for i in range(len(self.supply)) if self.supply_diff[i] == 0]
+            zero_rows_minimal = min([lowest_diffs_in_marked_row_column_pairs[i] for i in zero_rows_indexes])
+            zero_rows_index_minimal = self.__get_minimal_index_in_dict_from_list(lowest_diffs_in_marked_row_column_pairs, zero_rows_indexes)
+            zero_rows_column_index_minimal = [j for j in range(len(self.demand)) if lowest_diffs_in_marked_row_column_pairs[zero_rows_index_minimal] == zero_rows_minimal][0]
+            if minimal_lowest_diff_for_deficient_rows <= zero_rows_minimal:
+                #TODO
+                # случай 1. Просто производим перераспределение из избыточной строки в недостаточную в клетку отмеченного столбца. кот соответствует min delta
+                redistribution_value = min()
+
+            else:
+                # случай 2 (п. 9)
+                # проверяем перераспределение по цепочкам
+                # в нулевой строке в отмеченном столбце находим клетку, где у нас мин меньше мина для недостаточных строк
+                
+
+            self.get_virtual_and_real_supply_diff(assignment_matrix)  # self.supply_diff
+
+        #TODO проверить план методом потенциалов на корректность
+        print("Найден оптимальный план")
+        print_matrix(assignment_matrix)
+        return assignment_matrix
 
             
-
+    def __get_minimal_index_in_dict_from_list(self, dict, list):
+        min_value = float("inf")
+        min_index = -1
+        for el in list:
+            if dict[el] < min_value:
+                min_value = dict[el]
+                min_index = el
+        return min_index
 
 
     def build_column_increment_table(self):
