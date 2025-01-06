@@ -25,18 +25,18 @@ class Task:
 
 
 # ДРУГОЙ ВАРИАНТ
-# costs1 = np.array([[4893, 4280, 6213], [5327, 4296, 6188], [6006, 5030, 7224]])
-# supply1 = np.array([1000, 1700, 1600])  # запасы
-# demand1 = np.array([1600,1000,1700])  # спрос
-# print(MinimalCostMethod(supply1, demand1, costs1).find_path())
-# task = Task(supply1,
-#             demand1,
-#             costs1,
-#             MinimalCostMethod(supply1, demand1, costs1),
-#             MethodOfPotentials(supply1, demand1, costs1))
-#
-# task.solve()
-# print(task.plan)
+costs1 = np.array([[4893, 4280, 6213], [5327, 4296, 6188], [6006, 5030, 7224]])
+supply1 = np.array([1000, 1700, 1600])  # запасы
+demand1 = np.array([1600,1000,1700])  # спрос
+print(MinimalCostMethod(supply1, demand1, costs1).find_path())
+task = Task(supply1,
+            demand1,
+            costs1,
+            MinimalCostMethod(supply1, demand1, costs1),
+            MethodOfPotentials(supply1, demand1, costs1))
+
+task.solve()
+print(task.plan)
 
 # ИЗ ПОСОБИЯ
 # supply2 = np.array([100, 300, 180, 320])
@@ -56,17 +56,17 @@ class Task:
 # task.solve()
 # print(task.plan)
 
-supply = np.array([1300, 1200, 1100])
-demand = np.array([1000, 1500, 1100])
-cost = np.array([
-    [4893, 4280, 6213],
-    [5327, 4296, 6188],
-    [6006, 5030, 7224]])
-# print(MinimalCostMethod(supply, demand, cost).find_path())
-north_west_corner_method = NorthWestCornerMethod(supply, demand, cost)
-basic_plan = north_west_corner_method.find_path()
-potentials_method = MethodOfPotentials(north_west_corner_method.supply, north_west_corner_method.demand, north_west_corner_method.cost)
-optimal_plan = potentials_method.find_optimal_plan(basic_plan)
+# supply = np.array([1300, 1200, 1100])
+# demand = np.array([1000, 1500, 1100])
+# cost = np.array([
+#     [4893, 4280, 6213],
+#     [5327, 4296, 6188],
+#     [6006, 5030, 7224]])
+# # print(MinimalCostMethod(supply, demand, cost).find_path())
+# north_west_corner_method = NorthWestCornerMethod(supply, demand, cost)
+# basic_plan = north_west_corner_method.find_path()
+# potentials_method = MethodOfPotentials(north_west_corner_method.supply, north_west_corner_method.demand, north_west_corner_method.cost)
+# optimal_plan = potentials_method.find_optimal_plan(basic_plan)
 # task = Task(supply,
 #             demand,
 #             cost,

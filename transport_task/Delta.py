@@ -10,8 +10,31 @@ class DeltaMethod(OptimalPlanFinder):
         self.supply_diff = None
         self.occupied_cells = np.array([np.zeros(len(self.demand)) for _ in range(len(self.supply))])
 
+    def balance(self):
+        sum_supply = sum(self.supply)
+        sum_demand = sum(self.demand)
+        is_task_balanced = sum_demand == sum_supply
+        self.is_balanced = is_task_balanced
+        if is_task_balanced:
+            print("Задача сбалансирована")
+        else:
+            print("Задача несбалансирована. Сбалансируем ее")
+            if sum_supply > sum_demand:
+                # Вводим фиктивного n+1 потребителя
+                self.demand = np.append(self.demand, sum_supply - sum_demand)
+                for row_i in range(len(self.cost)):
+                    self.cost[row_i] = np.append(self.cost[row_i], 0)
+            else:
+                # Вводим фиктивного m+1 поставщика
+                self.supply = np.append(self.supply, sum_demand - sum_supply)
+                self.cost = np.append(self.cost, np.zeros(len(self.demand)))
+
     # here assignment_matrix equals to optimal_plan
     def find_optimal_plan(self, basic_plan:np.array):
+        self.balance()
+        print("Новые поставщики и потребители")
+        print(self.supply, "Поставщики")
+        print(self.demand, "Потребители")
         print("Начало работы дельта-метода")
         print("Исходная таблица стоимости")
         print_matrix(self.cost)
