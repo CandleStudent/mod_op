@@ -1,6 +1,7 @@
 package org.example;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Main {
 
@@ -46,19 +47,36 @@ public class Main {
         System.out.println("\n=======================================");
         System.out.println("РАННИЕ СРОКИ СОВЕРШЕНИЯ СОБЫТИЙ");
         int[] earlyArr = new int[n];
-        earlyArr[0] = 0;
         System.out.println("Ранний срок совершения события 1: " + earlyArr[0]);
-        for (int i = 1; i < n; i++) {
-            int max = Integer.MIN_VALUE;
-            if (Job.getWeightFromListByStartAndEnd(1, i + 1, graph) != null) {
-                max = Job.getWeightFromListByStartAndEnd(1, i + 1, graph);
+        boolean isNothingChanged = false;
+        while (!isNothingChanged) {
+            int[] oldArrayCopy = Arrays.copyOf(earlyArr, earlyArr.length);
+            for (Job job : graph) {
+                int endPoint = job.getEnd() - 1;
+                int prevValue = earlyArr[endPoint];
+                int earlyAtStart = earlyArr[job.getStart() - 1];
+                earlyArr[endPoint] = Integer.max(prevValue, earlyAtStart + job.getWeight());
             }
-            for (int j = 0; j < i; j++) {
-                if (Job.getWeightFromListByStartAndEnd(j + 1, i + 1, graph) != null && max < earlyArr[j] + Job.getWeightFromListByStartAndEnd(j + 1, i + 1, graph)) {
-                    max = earlyArr[j] + Job.getWeightFromListByStartAndEnd(j + 1, i + 1, graph);
+            for (int i = 0; i < n; i++) {
+                if (earlyArr[i] != oldArrayCopy[i]) {
+                    break;
                 }
+                isNothingChanged = true;
             }
-            earlyArr[i] = max;
+//            for (int i = 1; i < n; i++) {
+//            int max = Integer.MIN_VALUE;
+//            if (Job.getWeightFromListByStartAndEnd(1, i + 1, graph) != null) {
+//                max = Job.getWeightFromListByStartAndEnd(1, i + 1, graph);
+//            }
+//            for (int j = 0; j < i; j++) {
+//                if (Job.getWeightFromListByStartAndEnd(j + 1, i + 1, graph) != null && max < earlyArr[j] + Job.getWeightFromListByStartAndEnd(j + 1, i + 1, graph)) {
+//                    max = earlyArr[j] + Job.getWeightFromListByStartAndEnd(j + 1, i + 1, graph);
+//                }
+//            }
+//            earlyArr[i] = max;
+//            }
+        }
+        for (int i = 0; i < n; i++) {
             System.out.println("Ранний срок совершения события " + (i + 1) + ": " + earlyArr[i]);
         }
 
