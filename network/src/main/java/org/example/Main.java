@@ -45,16 +45,17 @@ public class Main {
         System.out.println("Все выходы системы: " + points);
 
         System.out.println("\n=======================================");
-        System.out.println("РАННИЕ СРОКИ СОВЕРШЕНИЯ СОБЫТИЙ");
+        System.out.println("РАННИЕ СРОКИ СОВЕРШЕНИЯ СОБЫТИЙ"); // слайд 59
         int[] earlyArr = new int[n];
         System.out.println("Ранний срок совершения события 1: " + earlyArr[0]);
         boolean isNothingChanged = false;
         while (!isNothingChanged) {
             int[] oldArrayCopy = Arrays.copyOf(earlyArr, earlyArr.length);
             for (Job job : graph) {
+                int startPoint = job.getStart() - 1;
                 int endPoint = job.getEnd() - 1;
                 int prevValue = earlyArr[endPoint];
-                int earlyAtStart = earlyArr[job.getStart() - 1];
+                int earlyAtStart = earlyArr[startPoint];
                 earlyArr[endPoint] = Integer.max(prevValue, earlyAtStart + job.getWeight());
             }
             for (int i = 0; i < n; i++) {
@@ -63,18 +64,6 @@ public class Main {
                 }
                 isNothingChanged = true;
             }
-//            for (int i = 1; i < n; i++) {
-//            int max = Integer.MIN_VALUE;
-//            if (Job.getWeightFromListByStartAndEnd(1, i + 1, graph) != null) {
-//                max = Job.getWeightFromListByStartAndEnd(1, i + 1, graph);
-//            }
-//            for (int j = 0; j < i; j++) {
-//                if (Job.getWeightFromListByStartAndEnd(j + 1, i + 1, graph) != null && max < earlyArr[j] + Job.getWeightFromListByStartAndEnd(j + 1, i + 1, graph)) {
-//                    max = earlyArr[j] + Job.getWeightFromListByStartAndEnd(j + 1, i + 1, graph);
-//                }
-//            }
-//            earlyArr[i] = max;
-//            }
         }
         for (int i = 0; i < n; i++) {
             System.out.println("Ранний срок совершения события " + (i + 1) + ": " + earlyArr[i]);
@@ -83,21 +72,29 @@ public class Main {
         System.out.println("\n=======================================");
         System.out.println("ДЛИНА КРИТИЧЕСКОГО ПУТИ");
         System.out.println("Время выполнения проекта (длина критического пути): " + earlyArr[n - 1]);
+        int critical_time = earlyArr[n - 1];
 
         System.out.println("\n=======================================");
-        System.out.println("ПОЗДНИЕ СРОКИ СОВЕРШЕНИЯ СОБЫТИЙ");
-        int[] lateArr = {earlyArr[n - 1], earlyArr[n - 1], earlyArr[n - 1], earlyArr[n - 1], earlyArr[n - 1], earlyArr[n - 1], earlyArr[n - 1], earlyArr[n - 1], earlyArr[n - 1]};
-        for (int i = n - 2; i >= 0; i--) {
-            int min = Integer.MAX_VALUE;
-            if (Job.getWeightFromListByStartAndEnd(i + 1, n, graph) != null) {
-                min = lateArr[i] - Job.getWeightFromListByStartAndEnd(i + 1, n, graph);
+        System.out.println("ПОЗДНИЕ СРОКИ СОВЕРШЕНИЯ СОБЫТИЙ"); // слайд 63
+        int[] lateArr = new int[n];
+        Arrays.fill(lateArr, 0, lateArr.length, critical_time);
+
+        isNothingChanged = false;
+        while (!isNothingChanged) {
+            int[] oldArrayCopy = Arrays.copyOf(lateArr, lateArr.length);
+            for (Job job : graph) {
+                int endPoint = job.getEnd() - 1;
+                int startPoint = job.getStart() - 1;
+                int prevValue = lateArr[startPoint];
+                int lateAtEnd = lateArr[endPoint];
+                lateArr[startPoint] = Integer.min(prevValue, lateAtEnd - job.getWeight());
             }
-            for (int j = n - 2; j > i; j--) {
-                if (Job.getWeightFromListByStartAndEnd(i + 1, j + 1, graph) != null && min > lateArr[i] - Job.getWeightFromListByStartAndEnd(i + 1, j + 1, graph) - (lateArr[n - 1] - lateArr[j])) {
-                    min = lateArr[i] - Job.getWeightFromListByStartAndEnd(i + 1, j + 1, graph) - (lateArr[n - 1] - lateArr[j]);
+            for (int i = 0; i < n; i++) {
+                if (lateArr[i] != oldArrayCopy[i]) {
+                    break;
                 }
+                isNothingChanged = true;
             }
-            lateArr[i] = min;
         }
         for (int i = 0; i < n; i++) {
             System.out.println("Поздний срок совершения события " + (i + 1) + ": " + lateArr[i]);
