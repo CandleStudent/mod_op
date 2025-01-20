@@ -4,11 +4,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Main {
+public class MainChangedTime {
 
     static int n = 9;
 
     public static void main(String[] args) {
+        // Изменили продолжительность работы (6 9) + 8. Как повлияло на (6, 7)?
         ArrayList<Job> graph = new ArrayList<>();
         graph.add(new Job(1, 2, 11));
         graph.add(new Job(1, 3, 20));
@@ -23,32 +24,13 @@ public class Main {
         graph.add(new Job(5, 7, 14));
         graph.add(new Job(6, 7, 12));
         graph.add(new Job(6, 8, 13));
-        graph.add(new Job(6, 9, 18));
+        graph.add(new Job(6, 9, 18 + 8));
         graph.add(new Job(7, 9, 17));
         graph.add(new Job(8, 9, 16));
-
-        System.out.println("=======================================");
-        System.out.println("ВХОДЫ И ВЫХОДЫ СИСТЕМЫ");
-        ArrayList<Integer> points = getPoints();
-        for (Job g : graph) {
-            if (points.contains(g.getEnd())) {
-                points.remove(points.indexOf(g.getEnd()));
-            }
-        }
-        System.out.println("Все входы системы: " + points);
-
-        points = getPoints();
-        for (Job g : graph) {
-            if (points.contains(g.getStart())) {
-                points.remove(points.indexOf(g.getStart()));
-            }
-        }
-        System.out.println("Все выходы системы: " + points);
 
         System.out.println("\n=======================================");
         System.out.println("РАННИЕ СРОКИ СОВЕРШЕНИЯ СОБЫТИЙ"); // слайд 59
         int[] earlyArr = new int[n];
-        System.out.println("Ранний срок совершения события 1: " + earlyArr[0]);
         boolean isNothingChanged = false;
         while (!isNothingChanged) {
             int[] oldArrayCopy = Arrays.copyOf(earlyArr, earlyArr.length);
@@ -67,7 +49,9 @@ public class Main {
             }
         }
         for (int i = 0; i < n; i++) {
-            System.out.println("Ранний срок совершения события " + (i + 1) + ": " + earlyArr[i]);
+            if (i == 6 - 1 || i == 7 - 1) {
+                System.out.println("Ранний срок совершения события " + (i + 1) + ": " + earlyArr[i]);
+            }
         }
 
         System.out.println("\n=======================================");
@@ -98,7 +82,9 @@ public class Main {
             }
         }
         for (int i = 0; i < n; i++) {
-            System.out.println("Поздний срок совершения события " + (i + 1) + ": " + lateArr[i]);
+            if (i == 6 - 1 || i == 7 - 1) {
+                System.out.println("Поздний срок совершения события " + (i + 1) + ": " + lateArr[i]);
+            }
         }
 
         System.out.println("\n=======================================");
@@ -110,7 +96,9 @@ public class Main {
         for (Job job : graph) {
             int currentFullReserve = lateArr[job.getEnd() - 1] - job.getWeight() - earlyArr[job.getStart() - 1]; // slide 57
             fullReserve[index] = currentFullReserve;
-            System.out.printf("Полный резерв для работы %d : %d%n", index + 1, currentFullReserve);
+            if (index == 11) {
+                System.out.printf("Полный резерв для работы %d : %d%n", index + 1, currentFullReserve);
+            }
             index++;
         }
 
@@ -119,10 +107,12 @@ public class Main {
         index = 0;
         int[] freeReserve = new int[graph.size()];
         for (Job w : graph) {
-            System.out.print("Свободный резерв для работы " + (index + 1) + ": ");
             int currentFreeReserve = earlyArr[w.getEnd() - 1] - w.getWeight() - earlyArr[w.getStart() - 1];
             freeReserve[index] = currentFreeReserve;
-            System.out.println(currentFreeReserve);
+            if (index == 11) {
+                System.out.print("Свободный резерв для работы " + (index + 1) + ": ");
+                System.out.println(currentFreeReserve);
+            }
             index++;
         }
 
@@ -151,6 +141,7 @@ public class Main {
                 critWay.add(i + 1);
         }
         System.out.println("Критический путь: " + critWay);
+
     }
 
     private static ArrayList<Integer> getPoints() {
