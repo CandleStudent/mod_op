@@ -70,7 +70,7 @@ public class Main {
         }
 
         System.out.println("\n=======================================");
-        System.out.println("ДЛИНА КРИТИЧЕСКОГО ПУТИ");
+        System.out.println("ДЛИНА КРИТИЧЕСКОГО ПУТИ"); // <==> длительность проекта
         System.out.println("Время выполнения проекта (длина критического пути): " + earlyArr[n - 1]);
         int critical_time = earlyArr[n - 1];
 
@@ -101,27 +101,28 @@ public class Main {
         }
 
         System.out.println("\n=======================================");
+        // Определить, насколько можно отложить выполнение работы без задержки всего проекта.
+        // Полный Резерв времени = LF - EF
         System.out.println("ПОЛНЫЕ РЕЗЕРВЫ ДЛЯ РАБОТЫ");
-        int count = 1;
+        int index = 0;
         int[] fullReserve = new int[graph.size()];
-        for (Job w : graph) {
-            System.out.print("Полный резерв для работы " + count + ": ");
-            int res = lateArr[w.getEnd() - 1] - w.getWeight() - earlyArr[w.getStart() - 1];
-            fullReserve[count - 1] = res;
-            System.out.println(res);
-            count++;
+        for (Job job : graph) {
+            int currentFullReserve = lateArr[job.getEnd() - 1] - job.getWeight() - earlyArr[job.getStart() - 1]; // slide 57
+            fullReserve[index] = currentFullReserve;
+            System.out.printf("Полный резерв для работы %d : %d%n", index, currentFullReserve);
+            index++;
         }
 
         System.out.println("\n=======================================");
-        System.out.println("СВОБОДНЫЕ РЕЗЕРВЫ ДЛЯ РАБОТЫ");
-        count = 1;
+        System.out.println("СВОБОДНЫЕ РЕЗЕРВЫ ДЛЯ РАБОТЫ"); // Определить, насколько можно отложить работу без задержки начала следующей работы.
+        index = 0;
         int[] freeReserve = new int[graph.size()];
         for (Job w : graph) {
-            System.out.print("Свободный резерв для работы " + count + ": ");
-            int res = earlyArr[w.getEnd() - 1] - w.getWeight() - earlyArr[w.getStart() - 1];
-            freeReserve[count - 1] = res;
-            System.out.println(res);
-            count++;
+            System.out.print("Свободный резерв для работы " + index + ": ");
+            int currentFreeReserve = earlyArr[w.getEnd() - 1] - w.getWeight() - earlyArr[w.getStart() - 1];
+            freeReserve[index] = currentFreeReserve;
+            System.out.println(currentFreeReserve);
+            index++;
         }
 
         System.out.println("\n=======================================");
@@ -151,12 +152,12 @@ public class Main {
         } else {
             for (Job w : graph) {
                 if (w.getStart() == 6 && w.getEnd() == 9) {
-                    System.out.print("Новый полный резерв для работы " + count + "(6,9) ");
+                    System.out.print("Новый полный резерв для работы " + index + "(6,9) ");
                     int res = lateArr[w.getEnd() - 1] + 4 - w.getWeight() - earlyArr[w.getStart() - 1];
                     System.out.println(res);
-                    System.out.println("Разница: " + (fullReserve[count - 1] - res));
+                    System.out.println("Разница: " + (fullReserve[index - 1] - res));
                 }
-                count++;
+                index++;
             }
         }
 
