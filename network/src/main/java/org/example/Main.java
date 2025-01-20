@@ -2,6 +2,7 @@ package org.example;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class Main {
 
@@ -109,7 +110,7 @@ public class Main {
         for (Job job : graph) {
             int currentFullReserve = lateArr[job.getEnd() - 1] - job.getWeight() - earlyArr[job.getStart() - 1]; // slide 57
             fullReserve[index] = currentFullReserve;
-            System.out.printf("Полный резерв для работы %d : %d%n", index, currentFullReserve);
+            System.out.printf("Полный резерв для работы %d : %d%n", index + 1, currentFullReserve);
             index++;
         }
 
@@ -118,7 +119,7 @@ public class Main {
         index = 0;
         int[] freeReserve = new int[graph.size()];
         for (Job w : graph) {
-            System.out.print("Свободный резерв для работы " + index + ": ");
+            System.out.print("Свободный резерв для работы " + (index + 1) + ": ");
             int currentFreeReserve = earlyArr[w.getEnd() - 1] - w.getWeight() - earlyArr[w.getStart() - 1];
             freeReserve[index] = currentFreeReserve;
             System.out.println(currentFreeReserve);
@@ -126,18 +127,24 @@ public class Main {
         }
 
         System.out.println("\n=======================================");
-        System.out.println("КРИТИЧЕСКИЕ РАБОТЫ");
-        ArrayList<Integer> critWorks = new ArrayList<>();
+        System.out.println("КРИТИЧЕСКИЕ РАБОТЫ"); // Это работы, которые не имеют резервов времени (полного или свободного). Задержка в их выполнении неминуемо приведёт к задержке всего проекта.
+        List<Integer> critJobs = new ArrayList<>();
         System.out.print("Критические работы: ");
         for (int i = 0; i < fullReserve.length; i++) {
             if (fullReserve[i] == 0) {
-                critWorks.add(i + 1);
-                System.out.print((i + 1) + ", ");
+                int jobNumber = i + 1;
+                critJobs.add(jobNumber);
+                Job correspondingJobFromGraph = graph.get(i);
+                System.out.printf(
+                        "работа №%d (из %d в %d), ",
+                        jobNumber,
+                        correspondingJobFromGraph.getStart(),
+                        correspondingJobFromGraph.getEnd());
             }
         }
 
         System.out.println("\n\n=======================================");
-        System.out.println("КРИТИЧЕСКИЙ ПУТЬ");
+        System.out.println("КРИТИЧЕСКИЙ ПУТЬ"); // Это последовательность критических работ, определяющая минимальное время завершения проекта. Его продолжительность равна времени, необходимому для выполнения всех работ проекта без учёта резервов.
         ArrayList<Integer> critWay = new ArrayList<>();
         for (int i = 0; i < n; i++) {
             if (lateArr[i] == earlyArr[i])
