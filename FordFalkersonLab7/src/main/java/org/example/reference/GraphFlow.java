@@ -98,6 +98,8 @@ public class GraphFlow {
             path.add(source);
             Collections.reverse(path); // Переворачиваем путь для правильного порядка
 
+            // В общем, обычный Форд-Фалерсон, только в случае превышения лимита m на n единиц, мы пускаем по сети
+            // на n единиц меньше, т.е. используем не всю их пропускную способность
             if (pathFlow > m - totalFlow) {
                 pathFlow = m - totalFlow; // Ограничиваем поток, чтобы не превысить требуемый
             }
@@ -108,7 +110,7 @@ public class GraphFlow {
             s = sink;
             while (s != source) { // Обновляем поток в графе
                 int u = parent[s];
-                updateFlow(u, s, pathFlow);
+                updateFlow(u, s, pathFlow); // для всех нод графа вычитаем pathFlow из текущего их flow для обратных ребер и прибавляем для прямых
                 s = parent[s];
             }
             if (totalFlow == m) {
@@ -206,7 +208,9 @@ public class GraphFlow {
         // Устанавливаем расстояние до начальной вершины (предполагаем, что это 0) равным 0
         distance[0] = 0;
 
-        // Проходим через все вершины V-1 раз (алгоритм Беллмана-Форда)
+        // Проходим через все вершины V-1 раз (алгоритм Беллмана-Форда, сл.56)
+        // идея проста: минимальная стоимость пути либо уже заложена в ячейке, либо представляет из себя сумму пути через посредника
+        // выбери минимум из этих двух вариантов
         for (int i = 0; i < V - 1; i++) {
             // Итерируем по всем вершинам и их исходящим рёбрам
             for (Map.Entry<Integer, List<ModifiedEdge>> entry : modifiedGraph.entrySet()) {
@@ -230,6 +234,9 @@ public class GraphFlow {
                 int v = edge.v; // Конечная вершина ребра
                 int cost = edge.cost; // Стоимость ребра
                 // Если расстояние до v можно уменьшить, это указывает на наличие отрицательного цикла
+                // т.к. по алгоритму Беллмана-Форда мы уже нашли минимальные пути.
+                // Если мы все еще можем уменьшать дистанцию (стоимость в данном случае), то это
+                // значит, что мы обнаружили отрицательный цикл
                 if (distance[u] != Integer.MAX_VALUE && distance[u] + cost < distance[v]) {
                     return reconstructNegativeCycle(parent, v); // Возвращаем найденный цикл
                 }
@@ -279,11 +286,15 @@ public class GraphFlow {
     }
 
     // Метод для вычисления минимального r для корректировки потока
+    // <==> sl. 47: Увеличиваем поток по отрицательному циклу на величину
+    // sigma = min ( b[ij] - x[ij], x[ji] )
+    // минимум берется по всем дугам цикла
     int calculateR(List<Integer> cycle) {
         int minR = Integer.MAX_VALUE;
         for (int i = 0; i < cycle.size() - 1; i++) {
             int u = cycle.get(i);
             int v = cycle.get(i + 1);
+            // b[ij] - x[ij]
             for (Edge edge : graph.get(u)) {
                 if (edge.v == v) {
                     int r = edge.capacity - edge.flow;
@@ -291,6 +302,7 @@ public class GraphFlow {
                     break;
                 }
             }
+            // x[ji]
             for (Edge edge : graph.get(v)) {
                 if (edge.v == u) {
                     int r = edge.flow;
