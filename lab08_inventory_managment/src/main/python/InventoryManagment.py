@@ -16,17 +16,21 @@ class InventoryManagement:
 
         # output
         self.q = None # размер заказа
-        self.l = None # траты на управление запасами
+        self.l = None # траты на управление запасами. Будем здесь считать стоимость хранения паллетов за 20 дней при заданном темпе поставок в 5 паллетов в день и стоимости хранения в 0.1
         self.theta = None # период поставки (время между поставками)
 
     def solve_task(self):
         q_func = lambda k, v, s: (2 * k * v / s)**0.5
-        l_func = lambda k, v, s, q: k * v / q + s * q / 2
+        # l_func = lambda k, v, s, q: k * v / q + s * q / 2
         theta_func = lambda q, v: q / v
+        l_func = lambda v, s, theta: v * s * (1 + theta) * theta / 2
 
         self.q = q_func(self.k, self.v, self.s)
-        self.l = l_func(self.k, self.v, self.s, self.q)
         self.theta = theta_func(self.q, self.v)
+        self.l = l_func(self.v, self.s, self.theta)
+
+    def calculate_price_for_fright(self):
+        return self.pallet_fright * self.q + self.k
 
 
 if __name__ == "__main__":
@@ -38,5 +42,6 @@ if __name__ == "__main__":
     print("Траты на осуществление зааказа: {} ед.денег".format(inventory_management.k))
     print("=========ОТВЕТ=========")
     print("Оптимальный размер поставки паллетов: ", inventory_management.q)
-    print("Траты на управление запасами: ", inventory_management.l)
+    print("Траты на управление запасами (стоимость хранения паллетов за время периода поставки тета): ", inventory_management.l)
     print("Период поставки (время между поставками)", inventory_management.theta)
+    print("Стоимость перевозки будет составлять: ", inventory_management.calculate_price_for_fright())
