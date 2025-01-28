@@ -28,7 +28,7 @@ public class Simplex {
                 continue;
             for (int j = 0; j < Gomory.n; j++) {
                 newTable[i][j] = Gomory.table[i][j] - Gomory.table[i][mainCol] * newTable[mainRow][j];
-                Matrix.reformateMatrix(newTable, i, j);
+//                Matrix.reformateMatrix(newTable, i, j);
             }
         }
         Gomory.table = Matrix.cloneMatrix(newTable);

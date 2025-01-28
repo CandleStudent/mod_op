@@ -1,6 +1,7 @@
 package org.example;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static java.lang.System.out;
 
@@ -12,17 +13,17 @@ public class Gomory {
     public Gomory(double[][] matrix, String[] array) {
         System.out.println("-------------Изначальная матрица-------------");
         int [] arr = new int[]{3,4,5};
-        ArrayList<Integer> tempBase = new ArrayList<Integer>();
+        ArrayList<Integer> tempBase = new ArrayList<>();
         for(int i = 0; i < arr.length; i++){
             tempBase.add(arr[i]);
         }
         Matrix.printMatrix(matrix);
         //меняем знаки у коэффициентов по знакам уравнения
         Matrix.changeBySign(matrix, array);
-        m = matrix.length;
-        n = matrix[0].length;
-        table = new double[m][n + m - 1];
-        basis = new ArrayList<>();
+        m = matrix.length; // rows
+        n = matrix[0].length; // columns
+        table = new double[m][n + m - 1]; // столбцы включают как базисные, так и небазисные переменные
+        basis = new ArrayList<>(); // index == разрешающие строки, значения по индексу -- разрешающие столбцы
 
         //заполнение матрицы для работы
         for (int i = 0; i < m; i++) {
@@ -117,12 +118,21 @@ public class Gomory {
         n += 1;
         //увеличенная матрица
         double[][] newMatrix = new double[table.length + 1][table[0].length + 1];
+
         //определяем индекс в базисе ответа с большей дробной частью
-        if (res[0] % 1 > res[1] % 1) {
-            bas = basis.get(1);
-        } else {
-            bas = basis.get(2);
+        Double max_reminder = (double) Integer.MIN_VALUE;
+        bas = 0;
+        for (int i = 0; i < res.length; i++) {
+            if (res[i] % 1 > 0 && res[i] > max_reminder) {
+                max_reminder = res[i];
+                bas = i;
+            }
         }
+//        if (res[0] % 1 > res[1] % 1) {
+//            bas = basis.get(0); // сейчас в базисе лежат 2 и 3, например. 2 -- x2, 3 -- s1
+//        } else {
+//            bas = basis.get(1);
+//        }
 
         //определение новой строки в матрице
         double[] magicCoef = new double[table[0].length + 1];

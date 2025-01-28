@@ -16,7 +16,7 @@ public class Matrix {
     public static double[][] changeBySign(double[][] matrix, String[] arr) {
         for (int i = 0; i < arr.length; i++) {
             if (arr[i].equals(">=") || arr[i].equals("max")) {
-                for (int j = 0; j < 3; j++) {
+                for (int j = 0; j < matrix[0].length; j++) {
                     matrix[i][j] = matrix[i][j] * -1;
                 }
             }
