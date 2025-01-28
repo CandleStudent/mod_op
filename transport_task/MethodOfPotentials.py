@@ -19,6 +19,8 @@ class MethodOfPotentials(OptimalPlanFinder):
     def find_optimal_plan(self, basic_plan:np.array):
         print("Начало поиска оптимального плана")
         self.optimal_plan = basic_plan
+        self.update_cost_func()
+        print("Целевая функция: ", self.cost_func)
         print("Исходный план")
         self.print_matr()
         self.initial_find_occupied_cells()
@@ -30,6 +32,9 @@ class MethodOfPotentials(OptimalPlanFinder):
             print("Новый план")
             self.print_matr()
             self.find_potentials()
+            self.update_cost_func()
+            print("Целевая функция: ", self.cost_func)
+            print("\n========\n")
 
         return self.optimal_plan
 

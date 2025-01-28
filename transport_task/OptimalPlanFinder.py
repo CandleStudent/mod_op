@@ -13,3 +13,10 @@ class OptimalPlanFinder:
 
     def find_optimal_plan(self, basic_plan:np.array):
         pass
+
+    def update_cost_func(self):
+        cost = 0
+        for i in range(len(self.cost)):
+            for j in range(len(self.cost[0])):
+                cost += self.cost[i, j] * self.optimal_plan[i, j]
+        self.cost_func = cost
