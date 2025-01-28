@@ -1,14 +1,22 @@
 import numpy as np
 
+from transport_task.BasicPlanFinder import BasicPlanFinder
+
+def calculate_delta_k(demand:np.array, supply:np.array, plan:np.array): # суммарная невязка матрицы, которая характеризует близость решения к оптимальному
+    # суммируем потребности и запасы и вычитываем из них сумму всех клеток плана
+    supply_and_demands = np.sum(demand) + np.sum(supply)
+    plan_cells_sum = np.sum(plan)
+    return supply_and_demands - plan_cells_sum
+
 cost = np.array([[4893, 4280, 6213], [5327, 4296, 6188], [6006, 5030, 7224]])
 
-# Для замены элементов
-max_elem = np.max(cost) + 10000
+# Для замены элементов. используется для "вычёркивания" обработанных ячеек (замена на очень большое значение).
+max_elem = np.max(cost) + 100000
 
 # Матрица оптимального плана
-final_matrix = np.zeros((3, 3), dtype=int)
+optimal_plan = np.zeros((3, 3), dtype=int)
 
-otvet = np.zeros((3, 3), dtype=int)
+answer_matrix = np.zeros((3, 3), dtype=int)
 
 
 # Запасы
@@ -16,22 +24,14 @@ supply = np.array([1000, 1700, 1600])  # индексация по i
 # Потребности
 demand = np.array([1600, 1000, 1700])  # индексация по j
 
-
-if np.sum(supply) == np.sum(demand):
-    print("Транспортная задача является закрытая")
-else:
-    print("Транспортная задача является открытая")
-    cost = np.copy(np.append(cost, np.array([
-        [0],
-        [0],
-        [0]
-    ]), axis=1))
-    demand = np.copy(np.append(demand, [abs(np.sum(demand) - np.sum(supply))]))
-    final_matrix = np.zeros((3, 4), dtype=int)
-    otvet = np.copy(final_matrix)
+# Балансируем задачу
+balancer = BasicPlanFinder(cost=cost, demand=demand, supply=supply)
+balancer.balance()
+supply = balancer.supply
+demand = balancer.demand
+cost = balancer.cost
 
 matrix_copy = np.copy(cost)
-
 
 print(cost)
 
@@ -39,7 +39,8 @@ def check_zeros_rows(matrix):
     for row in matrix:
         min_elem = np.min(row)
         if min_elem != 0:
-            for i in range(0, len(row) - 1):
+            # for i in range(0, len(row) - 1):
+            for i in range(0, len(row)):
                 row[i] = row[i] - min_elem
 
 
@@ -53,6 +54,7 @@ def check_zeros_columns(matrix):
 
 
 def distr_of_supplies(matrix):
+    # Делаем базисную матрицу из шага 1. Для этого, если у нас минимальный элемент не нуль, то мы вычитаем минимальный элемент из всех элементов столбца/строки
     check_zeros_rows(matrix)
     check_zeros_columns(matrix)
     print("Checked matrix:")
@@ -60,7 +62,7 @@ def distr_of_supplies(matrix):
 
     stocks = np.copy(supply)
     reqs = np.copy(demand)
-    temporary_matrix = np.copy(final_matrix)
+    temporary_matrix = np.copy(optimal_plan)
 
 
 
@@ -71,15 +73,15 @@ def distr_of_supplies(matrix):
 
     # Проверяем, можем ли мы распределить поставки
     while np.min(matrix) == 0:
-        mass = np.sum(matrix == 0, axis=1)
-        min_count_of_zeros = np.min(mass[np.nonzero(mass)])
+        amount_of_zeros_in_each_row = np.sum(matrix == 0, axis=1) # массив, содержащий количество нулей в каждой строке.
+        min_count_of_zeros = np.min(amount_of_zeros_in_each_row[np.nonzero(amount_of_zeros_in_each_row)])
 
-
-        i = np.where(mass == min_count_of_zeros)[0][0]
+        # Находим строку с минимальным количеством нулей.
+        i = np.where(amount_of_zeros_in_each_row == min_count_of_zeros)[0][0]
         row = matrix[i]
-        j = np.where(row == 0)[0][0]
+        j = np.where(row == 0)[0][0] # столбцы, где элемент найденной строки = 0
 
-        min_stocks_reqs = min(stocks[i], reqs[j])
+        min_stocks_reqs = min(stocks[i], reqs[j]) # нахожим минимум среди поставок и запросов
         print("min stock: ", min_stocks_reqs)
         temporary_matrix[i][j] = min_stocks_reqs
         # final_matrix[i][j] = min_stocks_reqs
@@ -89,23 +91,26 @@ def distr_of_supplies(matrix):
         reqs[j] = reqs[j] - min_stocks_reqs
 
 
-        matrix[i][j] = max_elem
+        matrix[i][j] = max_elem # отработали данный элемент
         print("Матрица после вычёркивания")
         print(matrix)
         print(f"Запасы после: {stocks}")
         print(f"Потребности после: {reqs}")
         print("\n=========\n")
 
+        current_delta_k = calculate_delta_k(demand, supply, matrix)
+        print("Текущая невязка матрицы: ", current_delta_k)
+
 
 
     # Если поставки распределить не получилось, ищем строку с максимальным запасом, затем вычитаем из каждого элемента
     # этой строки его минимальный элемент
     print("Temp1: ")
-    global otvet
-    otvet = np.copy(temporary_matrix)
+    global answer_matrix
+    answer_matrix = np.copy(temporary_matrix)
     if np.count_nonzero(stocks) > 0:
         max_stock_index = np.where(stocks == np.max(stocks))[0][0]  # i Индекс максимального запаса
-        min_elem_in_stock = np.min(matrix[max_stock_index])# Минимальный элемент в этой строке
+        min_elem_in_stock = np.min(matrix[max_stock_index])# Минимальный элемент в этой строке, не считая нули (они помечены огромными значениями)
 
         matrix = np.copy(matrix_copy)
         for elem_index in range(0, len(matrix[max_stock_index])):
@@ -127,6 +132,7 @@ def distr_of_supplies(matrix):
         distr_of_supplies(matrix)
     print("Temp2: ")
     print(temporary_matrix)
+
     return temporary_matrix
 
 
@@ -137,12 +143,12 @@ def hungarian_method():
 
 
 hungarian_method()
-print(otvet)
+print(answer_matrix)
 print()
 Fmin = 0
-while np.sum(otvet)>0:
-        indices = np.where(otvet>0)
+while np.sum(answer_matrix)>0:
+        indices = np.where(answer_matrix > 0)
         r_i, c_i = indices[0][0], indices[1][0]
-        Fmin += otvet[r_i][c_i]*matrix_copy[r_i][c_i]
-        otvet[r_i][c_i] = 0
+        Fmin += answer_matrix[r_i][c_i] * matrix_copy[r_i][c_i]
+        answer_matrix[r_i][c_i] = 0
 print(f'Найдем значение целевой функции = {Fmin}')

@@ -28,11 +28,13 @@ class BasicPlanFinder:
         else:
             print("Задача несбалансирована. Сбалансируем ее")
             if sum_supply > sum_demand:
+                print("Вводим фиктивного n+1 потребителя")
                 # Вводим фиктивного n+1 потребителя
                 self.demand = np.append(self.demand, sum_supply - sum_demand)
                 for row_i in range(len(self.cost)):
                     self.cost[row_i] = np.append(self.cost[row_i], 0)
             else:
+                print("Вводим фиктивного m+1 поставщика")
                 # Вводим фиктивного m+1 поставщика
                 self.supply = np.append(self.supply, sum_demand - sum_supply)
                 self.cost = np.append(self.cost, np.zeros(len(self.demand)))
