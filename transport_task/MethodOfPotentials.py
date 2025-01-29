@@ -57,6 +57,11 @@ class MethodOfPotentials(OptimalPlanFinder):
         else:
             print("План невырожденный")
 
+    def print_arr(self, arr):
+        for el in arr:
+            print(el, " ", end="")
+        print()
+
     def initial_find_occupied_cells(self):
         for i in range(len(self.supply)):
             for j in range(len(self.demand)):
@@ -74,18 +79,27 @@ class MethodOfPotentials(OptimalPlanFinder):
             linear_equations_system_vars.append(linear_equation)
             linear_equations_system_consts.append(self.cost[indexes[0], indexes[1]])
         linear_equations_system_vars = np.array(linear_equations_system_vars)
-        self.print_potential_system(linear_equations_system_vars, linear_equations_system_consts)
+        self.print_potential_system(linear_equations_system_vars, linear_equations_system_consts, non_null_cells)
         # устанавливаем значение одной из переменных как нуль (убираем один столбец по сути, считая его известным)
         linear_equations_system_vars = linear_equations_system_vars[:, 1:]
 
         self.potentials = np.linalg.solve(linear_equations_system_vars, linear_equations_system_consts)
         self.potentials = np.append(0, self.potentials) # добавляем зануленный потенциал
-        print("Потенциалы:", self.potentials)
+        print("\nПотенциалы")
+        print("u1,   u2,   u3,      v1,      v2,      v3")
+        self.print_arr(self.potentials)
+        # print("Потенциалы:", self.potentials)
 
-    def print_potential_system(self, coefs, consts):
+    def print_potential_system(self, coefs, consts, non_null_cells):
+        print()
         print("Матрица системы для поиска потенциалов")
+        # вывод названий
+        print("матрица составляется только для занятых клеток")
+        print("u1,  u2,   u3,  v1,  v2,  v3,cost_i_j,  i , j")
+
         for i in range(len(coefs)):
-            print(coefs[i], consts[i])
+            self.print_arr(np.append(np.append(coefs[i], consts[i]),non_null_cells[i]))
+            # print(coefs[i], "   ", consts[i], non_null_cells[i])
 
     def __find_non_null_cells(self):
         non_null_cells = []
